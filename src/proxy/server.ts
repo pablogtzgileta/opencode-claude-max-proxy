@@ -192,13 +192,9 @@ const BLOCKED_BUILTIN_TOOLS = [
 // Only block these — everything else either has an OpenCode equivalent
 // or is handled by OpenCode's own tool system.
 //
-// Mapping of Claude Code → OpenCode equivalents (NOT blocked):
-//   AskUserQuestion → question        (OpenCode has this!)
-//   TodoWrite       → todowrite       (OpenCode has this!)
-//   TaskOutput      → background_output
-//   TaskStop        → background_cancel
-//   Skill           → skill / skill_mcp / slashcommand
-//   Agent           → delegate_task / task
+// Tools where OpenCode has an equivalent but with a DIFFERENT name/schema
+// are blocked so Claude uses OpenCode's version instead of the SDK's.
+// See schema-incompatible section below.
 //
 // These truly have NO OpenCode equivalent (BLOCKED):
 const CLAUDE_CODE_ONLY_TOOLS = [
@@ -211,6 +207,16 @@ const CLAUDE_CODE_ONLY_TOOLS = [
   "EnterWorktree",     // Claude Code git worktree management
   "ExitWorktree",      // Claude Code git worktree management
   "NotebookEdit",      // Jupyter notebook editing
+  // Schema-incompatible: SDK tool name differs from OpenCode's.
+  // If Claude calls the SDK version, OpenCode won't recognize it.
+  // Block the SDK's so Claude only sees OpenCode's definitions.
+  "TodoWrite",         // OpenCode: todowrite (requires 'priority' field)
+  "AskUserQuestion",   // OpenCode: question
+  "Skill",             // OpenCode: skill / skill_mcp / slashcommand
+  "Agent",             // OpenCode: delegate_task / task
+  "TaskOutput",        // OpenCode: background_output
+  "TaskStop",          // OpenCode: background_cancel
+  "WebSearch",         // OpenCode: websearch_web_search_exa
 ]
 
 const MCP_SERVER_NAME = "opencode"
