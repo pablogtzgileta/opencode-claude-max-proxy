@@ -158,15 +158,26 @@ Sessions are cached for 24 hours.
 
 ## Concurrency
 
-The proxy supports multiple simultaneous OpenCode instances. Each request spawns its own independent SDK subprocess — there's no serialization bottleneck. All concurrent responses are delivered correctly.
+The proxy supports multiple simultaneous OpenCode instances. Each request spawns its own independent SDK subprocess — run as many terminals as you want. All concurrent responses are delivered correctly.
 
 **Use the auto-restart supervisor** (recommended):
 
 ```bash
+CLAUDE_PROXY_PASSTHROUGH=1 bun run proxy
+# or directly:
 CLAUDE_PROXY_PASSTHROUGH=1 ./bin/claude-proxy-supervisor.sh
 ```
 
-The Claude Agent SDK's `cli.js` subprocess is compiled with Bun, which has a [known bug](https://github.com/oven-sh/bun/issues/17947) that can crash during cleanup of concurrent streaming responses. **All responses are delivered** — the crash only occurs after responses complete. The supervisor restarts the proxy in ~1 second, so subsequent requests work immediately. Sequential requests never crash.
+> **⚠️ Known Issue: Bun SSE Crash ([oven-sh/bun#17947](https://github.com/oven-sh/bun/issues/17947))**
+>
+> The Claude Agent SDK's `cli.js` subprocess is compiled with Bun, which has a known segfault in `structuredCloneForStream` during cleanup of concurrent streaming responses. This affects all runtimes (Bun, Node.js via tsx) because the crash originates in the SDK's child process, not in the proxy itself.
+>
+> **What this means in practice:**
+> - **Sequential requests (1 terminal):** No impact. Never crashes.
+> - **Concurrent requests (2+ terminals):** All responses are delivered correctly. The crash occurs *after* responses complete, during stream cleanup. No work is lost.
+> - **After a crash:** The supervisor restarts the proxy in ~1-3 seconds. If a new request arrives during this window, OpenCode shows "Unable to connect" — just retry.
+>
+> We are monitoring the upstream Bun issue for a fix. Once patched, the supervisor becomes optional.
 
 ## Model Mapping
 
