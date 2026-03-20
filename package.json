@@ -32,6 +32,7 @@
     "bin/",
     "src/proxy/",
     "src/logger.ts",
+    "src/mcpTools.ts",
     "README.md"
   ],
   "keywords": [
